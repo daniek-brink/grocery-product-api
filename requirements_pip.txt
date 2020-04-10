@@ -1,0 +1,9 @@
+# PLEASE KEEP THIS FILE ALPHABETICAL WITHIN SECTIONS
+
+# Flask app
+flask~=1.1.1
+flask_cors~=3.0.8
+flask-jsonpify~=1.5.0
+flask-restful~=0.3.8
+
+numpy>=1.16.0
