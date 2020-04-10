@@ -9,9 +9,13 @@ import logging
 
 # Third-party imports
 from flask import Flask, json, jsonify, request, make_response
+from lxml.html import fromstring
+from requests import get
 from flask_cors import CORS
 from flask_restful import Resource, Api, reqparse
 import numpy as np
+import time
+import datetime
 
 LOGGER = logging.getLogger(__name__)
 
@@ -41,12 +45,24 @@ class AddProduct(Resource):
     def post():
 
         parse = reqparse.RequestParser()
-        parse.add_argument('product')
+        parse.add_argument('barcode')
+
+        timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
 
         np.random.seed(5)
-        samples = np.asarray(request.get_json()['product'])
+        barcode = np.asarray(request.get_json()['barcode'])
+        raw = get("https://www.google.com/search?q={0}".format(barcode)).text
+        page = fromstring(raw)
 
-        return make_response(jsonify({'product': samples.tolist()}))
+        product_name = None
+        for result in page.cssselect("div"):
+            if result.cssselect("a"):
+                url = result.cssselect("a")[0].get("href")
+                if url.startswith("/url?"):
+                    product_name = result.cssselect("a")[0].cssselect("div")[0].text_content()
+                    break
+
+        return make_response(jsonify({'product': product_name, 'timestamp': timestamp}))
 
 
 api.add_resource(AddProduct, '/add_product')
